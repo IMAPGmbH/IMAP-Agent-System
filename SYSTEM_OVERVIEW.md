@@ -39,15 +39,15 @@ The system employs a team of specialized AI agents. Currently, all agents use ge
 
         LLM Target (Final): Gemini 2.5 Pro.
 
-        Responsibilities: User interaction, strategic planning, task breakdown, coordination.
+        Responsibilities: User interaction, strategic planning, task breakdown, coordination. Loads the full relevant context of the current project state at the beginning of each planning step.
 
         Key Tools: File operations, (future) Gemini Vision, SerperDevTool, Scrape Website Content Tool.
 
     Researcher Agent:
 
-        LLM Target (Final): Gemini 1.5 Flash (as per original user specification for this role).
+        LLM Target (Final): Gemini 1.5 Flash.
 
-        Responsibilities: Market analysis, technology benchmarking, information gathering.
+        Responsibilities: Market analysis, technology benchmarking, information gathering. Agents are instructed to use research tools when faced with uncertainty rather than speculating.
 
         Key Tools: SerperDevTool (crewai-tools), Scrape Website Content Tool, File Write Tool.
 
@@ -105,12 +105,27 @@ The system employs a team of specialized AI agents. Currently, all agents use ge
 
 4. Workflow (Conceptual - as tested)
 
-(Content remains the same as in the previous version of SYSTEM_OVERVIEW.md)
+(Content remains the same as in Immersive IMAP_Project_Plan_V2)
 5. Key Design Decisions and Principles
 
-(Content remains the same as in the previous version of SYSTEM_OVERVIEW.md)
+    Direct Playwright Integration: Moved away from Docker/MCP for Playwright to a direct Python API integration for simplicity and robustness.
+
+    Agent-Led Summarization: For web scraping, the tool provides raw text, and the agent itself is responsible for summarization using its LLM. (Note: The alternative of tool-based summarization is kept in mind for future, more advanced LLMs).
+
+    Explicit Tool Usage in Tasks: Task descriptions are crafted to guide agents on which tools to use for specific sub-steps.
+
+    File-Based Artifact Exchange: Agents primarily exchange complex information via files.
+
+    Iterative Tool Development: Tools are built incrementally.
+
+    Internal English Communication: Standardized for better LLM performance.
+
+    Agent Behavior Principle: Agents are designed and prompted to utilize their research tools when faced with uncertainty or lack of information, rather than speculating or "hallucinating" solutions.
+
+    Modular Tools: Tools are designed to be relatively self-contained.
+
 6. Management of Sensitive Information
 
-(Content remains the same as in the previous version of SYSTEM_OVERVIEW.md)
+(Content remains the same as in Immersive IMAP_Project_Plan_V2)
 
 This overview should provide a solid understanding of the IMAP system's current architecture and design.

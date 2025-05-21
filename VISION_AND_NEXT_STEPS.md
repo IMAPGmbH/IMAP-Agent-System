@@ -7,17 +7,17 @@ Key characteristics of the envisioned system:
 
     Increased Autonomy: Agents should be able to make more complex decisions, self-correct minor issues, and require less explicit step-by-step guidance in their tasks.
 
-    Broader Skillset: Expansion of toolsets and agent capabilities to cover more aspects of web development (e.g., database interaction, frontend framework specific code generation, basic deployment tasks, more sophisticated testing).
+    Broader Skillset: Expansion of toolsets and agent capabilities to cover more aspects of web development.
 
-    Adaptive Planning: The Project Manager agent should be able to dynamically adjust plans based on feedback from other agents or unforeseen issues.
+    Adaptive Planning: The Project Manager agent should be able to dynamically adjust plans.
 
-    Learning & Improvement (Long-term): Mechanisms for the system to learn from past projects or feedback to improve its planning and execution strategies.
+    Learning & Improvement (Long-term): Mechanisms for the system to learn from past projects.
 
-    User-Friendly Interface: A simple interface for users to define project requirements, monitor progress, and retrieve final deliverables (beyond the current file-based system).
+    User-Friendly Interface: A simple interface for users.
 
-    Robust Error Handling & Self-Healing: Enhanced ability of agents to handle tool errors, API failures, or unexpected outputs gracefully and attempt recovery actions.
+    Robust Error Handling & Self-Healing: Enhanced ability of agents to handle errors gracefully.
 
-    Specialized LLM Utilization: Leveraging the best-suited LLMs for each agent role (e.g., Gemini 2.5 Pro for PM/Dev, Mistral for Testing, Codestral for Debugging) once API access is established.
+    Specialized LLM Utilization: Leveraging the best-suited LLMs for each agent role.
 
 🛣️ Immediate Next Steps (Post-Initial Phase)
 
@@ -25,56 +25,66 @@ Based on the current successful implementation of core functionalities, the foll
 
     Enhance SecureCommandExecutorTool (Security & Robustness):
 
-        Implement Robust Output Scrubbing: Critical for preventing leakage of sensitive information from command outputs.
+        Implement Robust Output Scrubbing.
 
-        Integrate Docker Sandboxing: Execute commands within isolated Docker containers for maximum security.
+        Integrate Docker Sandboxing.
 
     Finalize AdvancedFileOpsTool (Robustness):
 
-        Implement ignore_patterns Logic: Prevent agents from accessing/modifying sensitive or irrelevant files/directories (e.g., .git, project-specific .env files, build artifacts) using a configurable ignore list.
+        Implement ignore_patterns Logic.
 
     Implement PlaywrightBrowserTool - Advanced Features (Functionality):
 
-        Add more browser actions:
+        Add more browser actions (screenshots, forms, complex interactions, waits).
 
-            take_screenshot_tool(file_path: str, selector: Optional[str] = None)
-
-            fill_form_field_tool(selector: str, value: str) (refine type_text_tool)
-
-            select_dropdown_option_tool(selector: str, value: str)
-
-            wait_for_element_tool(selector: str, state: str = 'visible', timeout: int = 10000)
-
-        Improve multi-page/tab management if needed.
+        Improve multi-page/tab management.
 
     Implement GeminiVisionAnalyzerTool (Functionality - PM):
 
-        Allow the Project Manager to analyze design mockups or UI screenshots.
-
-        Focus on extracting layout information, color palettes, and key UI components.
+        Allow analysis of design mockups (layout, colors, UI components).
 
     Context Management & Long-Term Memory - Phase 1 (Scalability & Intelligence):
 
-        TextSummarizationTool: Develop a dedicated tool for summarizing larger text chunks (e.g., long research articles, extensive code files) before storing them or passing them between agents.
+        TextSummarizationTool: Develop a dedicated tool for summarizing larger texts.
 
-        Basic ChromaDB Integration:
+        Basic ChromaDB Integration: Store and retrieve key information semantically.
 
-            Create a simple mechanism for agents (especially Researcher and PM) to embed and store key information (e.g., final research reports, planning decisions, code snippets with descriptions) in ChromaDB.
+    "Full Repo Load" for Project Manager - Refinement (Context & Scalability):
 
-            Implement a basic tool for agents to perform semantic searches on this ChromaDB instance.
-
-    "Full Repo Load" for Project Manager (Context):
-
-        Implement the functionality within AdvancedFileOpsTool (or a new dedicated tool) that allows the PM to load the relevant textual content of the entire /application directory at the beginning of each planning step.
+        While the current "full load" works for smaller projects, refine this for very large projects (e.g., loading diffs, intelligent selection of core modules, or relying more on RAG for detailed code understanding).
 
     Refine Debug Agent Workflow (Robustness):
 
-        Extend the current error workflow to enable the Debug Agent to not only suggest a fix but also to instruct the Developer Agent to apply the fix.
+        Enable the Debug Agent to instruct the Developer to apply fixes.
 
-        Implement a re-testing loop after a fix has been applied.
+        Implement a re-testing loop after fixes.
 
     Configuration for Specialized LLMs:
 
-        Refactor agents.py and main.py to allow easy configuration of different LLMs (and their respective API keys, if needed) for different agent roles, preparing for the use of Gemini 2.5 Pro, Mistral, etc.
+        Refactor for easy configuration of different LLMs (and API keys) per agent.
 
-These steps will significantly enhance the capabilities, robustness, and intelligence of the IMAP Agent Building System, moving it closer to its long-term vision.
+🧠 Longer-Term Considerations & "Keep in Mind" Items
+
+This section captures points and alternative approaches discussed during initial development that may become relevant as the system evolves or as more advanced LLMs become available:
+
+    MCP (Model Context Protocol) Ecosystem:
+
+        While direct Python tool integrations are currently favored for simplicity and control (especially for file systems and command execution), the MCP ecosystem should be periodically re-evaluated. If mature, robust, and easily integrable MCP servers for specific functionalities (e.g., a universal, secure command-line server or a highly advanced filesystem server) emerge, they could offer benefits in standardization or sandboxing.
+
+    Tool-Based LLM Operations (e.g., Summarization in Web Tool):
+
+        The current design for the ScrapeWebsiteContentTool has the agent perform the summarization of scraped text using its own LLM. The alternative approach, where the tool itself makes an LLM call for summarization (potentially using a dedicated, fast LLM), was considered. This could be revisited if agents become significantly more advanced and a tool-internal LLM call offers efficiency or better encapsulation for specific, complex data processing tasks within a tool.
+
+    Advanced RAG Strategies for Code Understanding:
+
+        For very large codebases, the "Full Repo Load" for the Project Manager will become a bottleneck. Advanced Retrieval Augmented Generation (RAG) techniques, going beyond simple semantic search on summaries, will be crucial. This includes strategies for embedding and querying code structures, understanding dependencies, and retrieving highly context-specific code snippets for planning and modification tasks.
+
+    Agent Self-Correction and Learning from Tool Errors:
+
+        While agents currently report tool errors, a more advanced capability would be for agents to attempt to understand the nature of tool errors (e.g., a malformed path, a network timeout, an invalid selector) and potentially retry the tool with modified parameters or select an alternative tool or strategy. This moves towards more autonomous problem-solving.
+
+    Dynamic Tool Selection & Composition:
+
+        As the number of tools grows, more intelligent agents might dynamically select or even compose sequences of tools to achieve more complex goals, rather than relying solely on pre-defined tool lists and explicit instructions in task descriptions.
+
+These points are not immediate action items but serve as a reminder of alternative paths and future optimization opportunities as the IMAP system matures.
