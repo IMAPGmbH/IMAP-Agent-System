@@ -1,4 +1,5 @@
 import os
+from dotenv import load_dotenv # HINZUGEFÜGT
 from crewai import Agent, LLM
 from crewai_tools import SerperDevTool, CodeInterpreterTool 
 
@@ -28,30 +29,37 @@ from tools.web_tools import (
 from tools.execution_tools import secure_command_executor_tool
 
 # Import server tools
-from tools.server_tools import ( # NEUER IMPORT
+from tools.server_tools import ( 
     start_local_http_server_tool,
     stop_local_http_server_tool
 )
 
+# Import Vision Analyzer Tool
+from tools.vision_analyzer_tool import gemini_vision_analyzer_tool
+
+# Umgebungsvariablen laden, BEVOR sie verwendet werden
+load_dotenv() 
+
 gemini_api_key = os.getenv("GEMINI_API_KEY")
-lite_llm_model_name = os.getenv("LITELLM_MODEL_NAME")
+lite_llm_model_name = os.getenv("LITELLM_MODEL_NAME") 
 
 if not gemini_api_key:
     raise ValueError(
         "GEMINI_API_KEY not found in environment variables. "
-        "Ensure .env is loaded and the key is set in main.py."
+        "Ensure .env is loaded and the key is set (e.g., in .env file or main.py)."
     )
 if not lite_llm_model_name:
     raise ValueError(
         "LITELLM_MODEL_NAME not found in environment variables. "
-        "Ensure it is set in main.py (e.g., 'gemini/gemini-1.5-flash')."
+        "Ensure it is set (e.g., in .env file or main.py, e.g., 'gemini/gemini-1.5-flash')."
     )
 
 try:
     default_llm = LLM(
-        api_key=gemini_api_key,
-        model=lite_llm_model_name
+        model=lite_llm_model_name, # KORRIGIERT: model_name zu model geändert
+        api_key=gemini_api_key
     )
+    print(f"--- Debug (Agents): Default LLM for agents initialized with model: {lite_llm_model_name} ---")
 except Exception as e:
     print(f"Error initializing default_llm in agents.py: {e}")
     default_llm = None
@@ -61,13 +69,15 @@ project_manager_agent = Agent(
     role="Senior Web Development Project Manager",
     goal=(
         "Lead and coordinate web development projects from conception to completion. "
-        "Ensure all requirements are met, and the project is delivered on time and to a high standard."
+        "Ensure all requirements are met, and the project is delivered on time and to a high standard. "
+        "Analyze design mockups using vision tools to inform planning." 
     ),
     backstory=(
         "You are a highly skilled project manager with over 10 years of experience leading complex web development projects. "
         "You are an expert in agile methodologies, requirements analysis, risk management, and team coordination. "
         "You communicate clearly and concisely, making informed decisions to drive projects to success. "
-        "You utilize file system tools to create and manage plans, and research tools to gather information."
+        "You utilize file system tools to create and manage plans, research tools to gather information, "
+        "and vision tools to understand visual designs." 
     ),
     verbose=True,
     allow_delegation=True, 
@@ -81,7 +91,8 @@ project_manager_agent = Agent(
         move_path_tool,
         copy_path_tool,
         SerperDevTool(), 
-        scrape_website_content_tool
+        scrape_website_content_tool,
+        gemini_vision_analyzer_tool 
     ],
     llm=default_llm
 )
@@ -157,8 +168,8 @@ tester_agent = Agent(
         click_element_tool,       
         type_text_tool,           
         close_browser_tool,
-        start_local_http_server_tool, # NEUES TOOL HINZUGEFÜGT
-        stop_local_http_server_tool   # NEUES TOOL HINZUGEFÜGT
+        start_local_http_server_tool, 
+        stop_local_http_server_tool   
     ],
     llm=default_llm
 )
@@ -191,10 +202,12 @@ debug_agent = Agent(
 )
 
 if __name__ == '__main__':
-    # ... (if __name__ == '__main__' block remains the same as in agents.py - V8) ...
     if default_llm:
         print("Default LLM in agents.py initialized successfully.")
-        print(f"Configured model for default_llm: {lite_llm_model_name}")
+        # Sicherer Zugriff auf model Attribut, falls es bei LiteLLM anders heißt
+        llm_model_display_name = getattr(default_llm, 'model', getattr(default_llm, 'model_name', 'N/A'))
+        print(f"Configured model for default_llm: {llm_model_display_name}")
+
 
         agent_list = [
             ("Project Manager Agent", project_manager_agent),
