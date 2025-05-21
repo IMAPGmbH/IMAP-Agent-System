@@ -1,5 +1,5 @@
 import os
-from dotenv import load_dotenv # HINZUGEFÜGT
+from dotenv import load_dotenv 
 from crewai import Agent, LLM
 from crewai_tools import SerperDevTool, CodeInterpreterTool 
 
@@ -37,6 +37,9 @@ from tools.server_tools import (
 # Import Vision Analyzer Tool
 from tools.vision_analyzer_tool import gemini_vision_analyzer_tool
 
+# NEUER IMPORT: Import Text Summarization Tool
+from tools.text_summarization_tool import text_summarization_tool
+
 # Umgebungsvariablen laden, BEVOR sie verwendet werden
 load_dotenv() 
 
@@ -56,7 +59,7 @@ if not lite_llm_model_name:
 
 try:
     default_llm = LLM(
-        model=lite_llm_model_name, # KORRIGIERT: model_name zu model geändert
+        model=lite_llm_model_name, 
         api_key=gemini_api_key
     )
     print(f"--- Debug (Agents): Default LLM for agents initialized with model: {lite_llm_model_name} ---")
@@ -70,14 +73,14 @@ project_manager_agent = Agent(
     goal=(
         "Lead and coordinate web development projects from conception to completion. "
         "Ensure all requirements are met, and the project is delivered on time and to a high standard. "
-        "Analyze design mockups using vision tools to inform planning." 
+        "Analyze design mockups using vision tools and summarize long texts to inform planning." # Ziel erweitert
     ),
     backstory=(
         "You are a highly skilled project manager with over 10 years of experience leading complex web development projects. "
         "You are an expert in agile methodologies, requirements analysis, risk management, and team coordination. "
         "You communicate clearly and concisely, making informed decisions to drive projects to success. "
         "You utilize file system tools to create and manage plans, research tools to gather information, "
-        "and vision tools to understand visual designs." 
+        "vision tools to understand visual designs, and summarization tools to condense information." # Backstory erweitert
     ),
     verbose=True,
     allow_delegation=True, 
@@ -92,7 +95,8 @@ project_manager_agent = Agent(
         copy_path_tool,
         SerperDevTool(), 
         scrape_website_content_tool,
-        gemini_vision_analyzer_tool 
+        gemini_vision_analyzer_tool,
+        text_summarization_tool # NEUES TOOL HINZUGEFÜGT
     ],
     llm=default_llm
 )
@@ -126,11 +130,11 @@ developer_agent = Agent(
 # --- Researcher Agent ---
 researcher_agent = Agent(
     role="Professional Research Specialist and Analyst",
-    goal="Conduct comprehensive and targeted research on given topics, extract relevant information from websites, and summarize it concisely.",
+    goal="Conduct comprehensive and targeted research on given topics, extract relevant information from websites, summarize it concisely, and save findings.", # Ziel erweitert
     backstory=(
         "You are an expert in information retrieval and analysis. You can efficiently use web search engines "
         "to identify relevant sources. Subsequently, you are adept at extracting, evaluating, "
-        "and synthesizing the core insights from these sources into a clear and understandable format. "
+        "and synthesizing the core insights from these sources into a clear and understandable format, using summarization tools when needed. " # Backstory erweitert
         "You ensure to use only trustworthy information and structure your findings well."
     ),
     verbose=True,
@@ -138,7 +142,8 @@ researcher_agent = Agent(
     tools=[
         SerperDevTool(), 
         scrape_website_content_tool, 
-        write_file_tool 
+        write_file_tool,
+        text_summarization_tool # NEUES TOOL HINZUGEFÜGT
     ],
     llm=default_llm
 )
@@ -204,10 +209,8 @@ debug_agent = Agent(
 if __name__ == '__main__':
     if default_llm:
         print("Default LLM in agents.py initialized successfully.")
-        # Sicherer Zugriff auf model Attribut, falls es bei LiteLLM anders heißt
         llm_model_display_name = getattr(default_llm, 'model', getattr(default_llm, 'model_name', 'N/A'))
         print(f"Configured model for default_llm: {llm_model_display_name}")
-
 
         agent_list = [
             ("Project Manager Agent", project_manager_agent),
